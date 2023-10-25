@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            color: #007BFF;
+        }
+
+        .order-item {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-image {
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 20px;
+        }
+
+        .order-info {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .rental-details {
+            flex: 1;
+        }
+
+        .rental-details h2 {
+            color: #007BFF;
+            margin-top: 0;
+            font-size: 18px;
+        }
+
+        .rental-details p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .search-bar {
+            margin-bottom: 2rem;
+        }
+        .search-bar input[type="text"]{
+            width: 100%;
+            padding: 0.5rem;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .search-bar select {
+            padding: 0.5rem;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            flex: 1;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        .search-bar label {
+            font-size: 1rem;
+            margin-right: 10px;
+        }
+        .order-details {
+            display: none;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            max-width: 1000px; /* Điều chỉnh kích thước phần chi tiết */
+        }
+
+        .order-details-button {
+            background-color: #007bff;
+            cursor: pointer;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+    </style>
+
+</head>
+<body>
+<h1 style="text-align: center">Order Information</h1>
+<div class="search-bar">
+    <input type="text" id="search-input" placeholder="Nhập từ khóa tìm kiếm">
+    <label for="status-filter">Trạng thái:</label>
+    <select id="status-filter">
+        <option value="Tất cả">Tất cả</option>
+        <option value="Chưa xác nhận">Chưa xác nhận</option>
+        <option value="Đã xác nhận">Đã xác nhận</option>
+    </select>
+</div>
+<!--{{#each orders}}-->
+<!--    <div class="order-item">-->
+<!--        <div class="order-info">-->
+<!--            <img src="{{image}}" alt="{{name}}" class="book-image">-->
+<!--            <div class="rental-details">-->
+<!--                <h2>{{product_name}}</h2>-->
+<!--                <p class="phone">Phone: {{phone}}</p>-->
+<!--                <p class="name">Name: {{name}}</p>-->
+<!--                <p>Address: {{address}}</p>-->
+<!--                <p style="color: red;font-weight: bold">Price: {{price}}</p>-->
+<!--                <p>Created At: <span class="updated-at">{{formatDate updatedAt}}</span></p>-->
+
+<!--                {{#if (eq status 1)}}-->
+<!--                    <span style="font-size: 15px;color: #3f3f46">Status:</span>-->
+<!--                    <span class="status" style="color: red">Chưa xác nhận</span>-->
+<!--                <br>-->
+<!--                    <button class=" text-white rounded px-4 py-2 mt-4" style="background-color: #28a745; cursor: pointer" onclick="showConfirmDialog('{{this.createdAt}}','{{this._id}}', '{{name}}', '{{price}}', '{{product_id}}')">Xác nhận đơn hàng</button>-->
+<!--                {{else}}-->
+<!--                    <span style="font-size: 15px;color: #3f3f46">Status:</span>-->
+<!--                    <span class="status" style="color: green">Đã xác nhận</span>-->
+<!--                    <br>-->
+<!--                    <button class=" text-white rounded px-4 py-2 mt-4" style="background-color: #f84343; cursor: pointer" disabled>Đã xác nhận</button>-->
+<!--                {{/if}}-->
+
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--{{/each}}-->
+{{#each orders}}
+    <div class="order-item">
+        <div class="order-info">
+            <img src="{{products.[0].image}}" alt="{{products.[0].productName}}" class="book-image">
+            <div class="rental-details">
+                <h2>{{products.[0].productName}}</h2>
+                <p class="phone">Phone: {{phone}}</p>
+                <p class="name">Name: {{userName}}</p>
+                <p>Address: {{address}}</p>
+                <p>Payment Medthod: {{paymentMethod}}</p>
+                <p style="color: red; font-weight: bold">Total Amount: {{totalAmount}}$</p>
+                <p>Created At: <span class="updated-at">{{formatDate createdAt}}</span></p>
+                <span style="font-size: 15px; color: #3f3f46">Status:</span>
+                {{#if (eq status 1)}}
+                    <span class="status" style="color: red">Chưa xác nhận</span>
+                    <br>
+                    <button class="text-white rounded px-4 py-2 mt-4" style="background-color: #28a745; cursor: pointer" onclick="showConfirmDialog('{{createdAt}}', '{{_id}}', '{{userName}}', '{{products.[0].price}}', '{{products.[0].productId}}')">Xác nhận đơn hàng</button>
+                {{else}}
+                    <span class="status" style="color: green">Đã xác nhận</span>
+                    <br>
+                    <button class="text-white rounded px-4 py-2 mt-4" style="background-color: #f84343; cursor: pointer" disabled>Đã xác nhận</button>
+                {{/if}}
+                <button class="text-white rounded px-4 py-2 mt-4" style="background-color: #007bff; cursor: pointer" onclick="toggleOrderDetails('orderDetails_{{_id}}')">Xem chi tiết đơn hàng</button>
+            </div>
+        </div>
+    </div>
+        <div id="orderDetails_{{_id}}" class="order-details" style="display: none">
+            <h2>Thông tin chi tiết đơn hàng</h2>
+            <p>User Name: {{userName}}</p>
+            <p>Address: {{address}}</p>
+            <p>Phone: {{phone}}</p>
+            <p>Payment Method: {{paymentMethod}}</p>
+            <p>Total Amount: {{totalAmount}}$</p>
+            <p>Created At: {{formatDate createdAt}}</p>
+
+            <h3>Sản phẩm:</h3>
+            <ul>
+                {{#each products}}
+                    <li>
+                        <p>Product Name: {{productName}}</p>
+                        <p>Quantity: {{quantity}}</p>
+                        <p>Price: {{price}}</p>
+                        <img src="{{image}}" alt="{{productName}}" class="product-image">
+                    </li>
+                {{/each}}
+            </ul>
+        </div>
+{{/each}}
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+<script>
+    function toggleOrderDetails(orderDetailsId) {
+        const orderDetails = document.getElementById(orderDetailsId);
+        if (orderDetails.style.display === 'none') {
+            orderDetails.style.display = 'block';
+        } else {
+            orderDetails.style.display = 'none';
+        }
+    }
+
+</script>
+<script>
+    const items = document.querySelectorAll('.order-info');
+    const searchInput = document.getElementById('search-input');
+    const statusFilter = document.getElementById('status-filter');
+
+    function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedStatus = statusFilter.value;
+
+        items.forEach(item => {
+            const title = item.querySelector('.name').textContent.toLowerCase();
+            const phone = item.querySelector('.phone').textContent.toLowerCase();
+            const statusElement = item.querySelector('.status');
+            const status = statusElement ? statusElement.textContent.toLowerCase() : "";
+            console.log('status:', status);
+            const rentalItem = item.closest('.order-item');
+            const titleMatch = title.includes(searchTerm);
+            const phoneMatch = phone.includes(searchTerm);
+            const statusMatch = (selectedStatus === 'Tất cả' || (selectedStatus === 'Chưa xác nhận' && status === 'chưa xác nhận') || (selectedStatus === 'Đã xác nhận' && status === 'đã xác nhận'));
+
+            if ((titleMatch || phoneMatch) && statusMatch) {
+                rentalItem.style.display = 'block';
+            } else {
+                rentalItem.style.display = 'none';
+            }
+
+
+        });
+        console.log('selectedStatus:', selectedStatus);
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+        }
+
+        const updatedAtElements = document.querySelectorAll('.updated-at');
+
+        updatedAtElements.forEach(element => {
+            const timestamp = element.textContent;
+            const formattedDate = formatDate(timestamp);
+            element.textContent = formattedDate;
+        });
+
+    });
+
+    function showConfirmDialog(createdAtString,orderId, name, price,product_id) {
+            Swal.fire({
+                title: 'Xác nhận đơn hàng',
+                html: `Bạn có chắc chắn muốn xác nhận đơn hàng </br><strong>${name}</strong>?</br>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#f84343',
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Hủy',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Gửi request PUT dữ liệu lên cơ sở dữ liệu
+                    fetch(`/order/${orderId}/confirm-return?_method=PUT`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ id: orderId, status: 2 })
+                    })
+                            .then(response => response.json())
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Xác nhận đơn hàng thành công',
+                        text: `Số tiền cần thanh toán: ${price} VNĐ`,
+                    }).then( () => {
+                        fetch(`products/productsjson/${product_id}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                                .then(response => response.json())
+                                .then(data => {
+                                    const currentQuantity = data.quantity;
+                                    const newQuantity = currentQuantity + 1;
+
+                                    // Update the book quantity with the new quantity
+                                    fetch(`/products/${product_id}/update_quantity?_method=PUT`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({ _id: product_id, quantity: newQuantity })
+                                    })
+                                            .then(response => response.json())
+                                            .then(() => {
+                                                console.log('Updated product quantity successfully');
+                                            })
+                                            .catch(error => {
+                                                console.error('Error updating product quantity:', error);
+                                            });
+
+                                    location.reload();
+                                });
+                    })
+                }
+            });
+
+
+
+
+    }
+</script>
+</body>
+</html>

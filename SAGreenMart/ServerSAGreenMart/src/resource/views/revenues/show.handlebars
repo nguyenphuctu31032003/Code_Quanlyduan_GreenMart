@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Thêm các thư viện cần thiết, ví dụ: Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            overflow-x: auto;
+            max-width: 1000px; /* Giới hạn chiều rộng tối đa của biểu đồ */
+            white-space: nowrap; /* Không cho phép xuống dòng các phần tử con */
+        }
+        /* Thêm CSS để giới hạn độ dài của tiêu đề */
+        .chart-container .chartjs-size-monitor {
+            max-width: 1000px;
+            overflow: hidden;
+        }
+        .chart-container .chartjs-size-monitor .chartjs-size-monitor-expand {
+            overflow: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        .chart-container .chartjs-size-monitor .chartjs-size-monitor-shrink {
+            overflow: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        .chart-container .chartjs-size-monitor .chartjs-size-monitor-expand::after {
+            content: '';
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 9999px;
+            width: 1px;
+            height: 100%;
+            background-color: #fff;
+        }
+        .chart-container .chartjs-size-monitor .chartjs-size-monitor-shrink::after {
+            content: '';
+            display: block;
+            position: absolute;
+            top: 9999px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background-color: #fff;
+        }
+        .chart-container .chartjs-size-monitor .chartjs-size-monitor-expand,
+        .chart-container .chartjs-size-monitor .chartjs-size-monitor-shrink {
+            position: absolute;
+            width: 1000000px;
+            height: 1000000px;
+            left: 0;
+            top: 0;
+        }
+        .chart-options {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .chart-options button {
+            margin: 0 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .chart-options button.active {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="chart-container">
+    <h2 style="text-align: center">Doanh Thu Bán Hàng</h2>
+    <canvas id="revenueChart"></canvas>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script>
+    $.noConflict();
+    function showChart() {
+        let revenueChart;
+        // Gửi yêu cầu lấy thông tin doanh thu từ server
+        fetch('revenue/calculate-total-revenue')
+                .then(response => response.json())
+                .then(data => {
+                    // Xử lý dữ liệu doanh thu và vẽ biểu đồ
+                    const revenueData = data; // Dữ liệu doanh thu từ server, ví dụ: [{ book_title: 'Harry Potter', revenue: 50000 }, ...]
+                    revenueData.sort((a, b) => b.revenue - a.revenue);
+                    const labels = revenueData.map(item => '');
+                    const revenues = revenueData.map(item => item.revenue);
+
+                    const ctx = document.getElementById('revenueChart').getContext('2d');
+                    if (revenueChart) {
+                        // Nếu biểu đồ đã tồn tại, chỉ cần cập nhật dữ liệu và tùy chọn mới
+                        revenueChart.data.labels = labels;
+                        revenueChart.data.datasets[0].data = revenues;
+                        revenueChart.update();
+                    } else {
+                        // Nếu biểu đồ chưa tồn tại, tạo mới biểu đồ
+                        revenueChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: '', // Ẩn tiêu đề sách dưới chân các cột
+                                    data: revenues,
+                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                plugins: {
+                                    legend: {
+                                        display: false // Ẩn tiêu đề sách
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            title: function (context) {
+                                                return revenueData[context[0].dataIndex].book_title;
+                                            },
+                                            label: function (context) {
+                                                return 'Doanh thu: ' + context.parsed.y;
+                                            }
+                                        }
+                                    }
+                                },
+                                indexAxis: 'x', // Hiển thị các cột theo trục x
+                                scales: {
+                                    x: {
+                                        beginAtZero: true, // Bắt đầu từ giá trị 0
+                                        maxRotation: 0, // Đảm bảo các label trên trục x không bị xoay
+                                        minRotation: 0, // Đảm bảo các label trên trục x không bị xoay
+                                    }
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching revenue data:', error);
+                });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        showChart();
+    });
+</script>
+</body>
+</html>

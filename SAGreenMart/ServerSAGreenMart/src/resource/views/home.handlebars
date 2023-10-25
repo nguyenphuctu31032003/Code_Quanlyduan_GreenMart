@@ -1,0 +1,451 @@
+<script src="https://kit.fontawesome.com/61898c01a3.js" crossorigin="anonymous"></script>
+<style>
+    .card-img-top {
+        height: 150px;
+        width: 200px;
+        object-fit: cover;
+    }
+    .search-bar {
+        margin-bottom: 1rem;
+    }
+    .search-bar input[type="text"] {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 1rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+    #category-filter{
+        padding: 0.5rem;
+        font-size: 1rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        margin-bottom: 1rem;
+    }
+    .rating-stars {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+    .rating-stars i {
+        color: gold;
+    }
+    .item-container {
+        margin-bottom: 2rem;
+    }
+
+    .item-list {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -1rem; /* Tạo khoảng cách giữa các dòng */
+    }
+
+    .item.card {
+        width: 100%;
+        flex: 0 0 calc(25% - 2rem); /* Hiển thị mỗi dòng một phần tử, lưu ý trừ đi margin 2rem */
+        margin: 1rem; /* Khoảng cách giữa các item */
+        padding: 1rem;
+        background-color: #ffffff;
+        border: 1px solid #e1e1e1;
+        border-radius: 4px;
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
+
+    .item.card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .item-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .item-image {
+        flex: 0 0 auto;
+        margin-right: 1rem;
+    }
+
+    .item-details {
+        flex: 1 1 auto;
+        padding: 0.5rem;
+    }
+
+    .item-title {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+        color: #333333;
+    }
+
+    .item-author,.category_name {
+        font-size: 1rem;
+        color: #777777;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-rating {
+        color: gold;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-price {
+        font-weight: bold;
+        color: #333333;
+        margin-bottom: 0.5rem;
+    }
+
+
+    .delete-button {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: none;
+        border: none;
+        color: #989898;
+        cursor: pointer;
+    }
+    .delete-button:hover {
+        color: #dc3545;
+    }
+    .modal {
+        position: fixed;
+        z-index: 1050;
+        left: 30%;
+        top:30% ;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        outline: 0;
+
+    }
+
+    .modal-dialog {
+        position: relative;
+        width: auto;
+        margin: 0.5rem;
+        pointer-events: none;
+    }
+
+    .modal-content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        pointer-events: auto;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 0.3rem;
+        outline: 0;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 0.5rem;
+        border-bottom: 1px solid #e9ecef;
+        border-top-left-radius: 0.3rem;
+        border-top-right-radius: 0.3rem;
+    }
+
+    .modal-body {
+        position: relative;
+        flex: 1 1 auto;
+        padding: 1rem;
+    }
+
+    .modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0.5rem;
+        border-top: 1px solid #e9ecef;
+        border-bottom-right-radius: 0.3rem;
+        border-bottom-left-radius: 0.3rem;
+    }
+
+    .close {
+        float: right;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #000;
+        text-shadow: 0 1px 0 #fff;
+        opacity: 0.5;
+    }
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        opacity: 0.75;
+    }
+
+    .btn {
+        display: inline-block;
+        font-weight: 400;
+        color: #212529;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        background-color: transparent;
+        border: 1px solid transparent;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    .btn-danger {
+        color: #fff;
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    .btn-danger:hover {
+        color: #fff;
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+    .btn-secondary {
+        color: #fff;
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .btn-secondary:hover {
+        color: #fff;
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+    .success-message {
+        display: none;
+        position: fixed;
+        z-index: 2;
+        bottom: 0;
+        right: 0;
+        padding: 0.5rem 1rem;
+        background-color: #28a745;
+        color: #fff;
+        animation: fadeOut 5s forwards;
+    }
+
+    @keyframes fadeOut {
+        0% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 0;
+        }
+    }
+    @media (min-width: 768px) {
+        .item-list {
+            margin: -1rem;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .item.card {
+            flex: 0 0 calc(50% - 2rem); /* Hiển thị 2 phần tử trên mỗi dòng */
+            margin: 1rem;
+            padding: 1rem;
+        }
+    }
+    .no-matching-books {
+        text-align: center;
+        display: none;
+        margin-top: 25%;
+        color: red; /* Đổi màu sắc và kiểu hiển thị tùy ý */
+        font-weight: bold;
+    }
+
+
+
+
+
+</style>
+
+<div class="mt-4" style="width: 120%">
+    <div id="success-message" class="success-message"></div>
+    <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Nhập từ khóa tìm kiếm">
+    </div>
+    <div class="filter-bar">
+        <label for="category-filter">Thể loại:</label>
+        <select id="category-filter">
+            <option value="">Tất cả</option>
+        </select>
+    </div>
+
+    <div class="item-list">
+        {{#each products}}
+            <div class="item card" data-id="{{this._id}}">
+                <div class="item-content">
+                    <div class="item-image">
+                        <a href="/products/{{this.slug}}">
+                            <img class="card-img-top" src="{{this.image}}" alt="Card image cap">
+                        </a>
+                    </div>
+                    <div class="item-details">
+                        <p class="item-title"><a href="/products/{{this.slug}}" style="color: black">{{this.name}}</a></p>
+                        <p class="category_name">{{this.category}}</p>
+                        <p class="category_name">Quantity: {{this.quantity}}</p>
+                        <div class="item-price">
+                            <div class="purchase-price">Giá mua: {{this.price}}</div>
+                        </div>
+                        <button class="delete-button" data-id="{{this._id}}"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            </div>
+        {{/each}}
+    </div>
+    <div class="no-matching-books">Không có sách phù hợp với thể loại đã chọn.</div>
+
+
+
+    <div class="modal" tabindex="-1" role="dialog" id="confirmation-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận xóa sách</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa sách này?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete">Xóa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    // Lấy tất cả các nút X
+    const deleteButtons = document.querySelectorAll('.delete-button');
+
+    // Xử lý sự kiện khi click vào nút X
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Lấy ID của mục cần xóa từ thuộc tính data-id
+            const itemId = this.getAttribute('data-id');
+
+            // Hiển thị modal dialog
+            $('#confirmation-modal').modal('show');
+
+            // Xử lý sự kiện click trên nút xóa
+            document.getElementById('confirm-delete').addEventListener('click', function() {
+                event.preventDefault(); // Ngăn trình duyệt tải lại trang
+
+                // Gửi yêu cầu xóa bằng Ajax
+                fetch('/products/' + itemId + '/delete', {
+                    method: 'DELETE',
+                })
+                        .then(response => {
+                            if (response.ok) {
+                                // Xóa item khỏi giao diện
+                                const item = document.querySelector(`.item[data-id="${itemId}"]`);
+                                if (item) {
+                                    item.remove();
+                                }
+
+                                // Hiển thị thông báo thành công
+                                const successMessage = document.getElementById('success-message');
+                                successMessage.textContent = 'Xóa thành công';
+                                successMessage.style.display = 'block';
+
+                                // Tự động ẩn thông báo sau 1s
+                                setTimeout(function() {
+                                    successMessage.style.display = 'none';
+                                }, 5000);
+                            } else {
+                                console.error('Error:', response.status);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+
+                // Đóng modal dialog
+                $('#confirmation-modal').modal('hide');
+            });
+        });
+    });
+
+</script>
+<script>
+    const items = document.querySelectorAll('.item');
+
+    document.getElementById('search-input').addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+
+        items.forEach(item => {
+            const title = item.querySelector('.item-title').textContent.toLowerCase();
+
+            if (title.includes(searchTerm)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const categoryFilter = document.getElementById('category-filter');
+        const items = document.querySelectorAll('.item');
+
+        // Lấy danh sách thể loại từ API và thêm vào thẻ select
+        fetch('http://localhost:4848/products/categories/categoriesjson')
+                .then(response => response.json())
+                .then(categories => {
+                    categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.category; // Sử dụng category_name thay vì _id
+                        option.textContent = category.category;
+                        categoryFilter.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching categories:', error);
+                });
+
+        // Xử lý sự kiện thay đổi thể loại
+        categoryFilter.addEventListener('change', function () {
+            const selectedCategory = this.value;
+            let anyMatchingBooks = false; // Biến kiểm tra xem có sách phù hợp không
+
+            items.forEach(item => {
+                const itemCategory = item.querySelector('.category_name').textContent;
+
+                if (selectedCategory === '' || itemCategory === selectedCategory) {
+                    item.style.display = 'block';
+                    anyMatchingBooks = true; // Có ít nhất một cuốn sách phù hợp
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Hiển thị hoặc ẩn thông báo tùy theo biến anyMatchingBooks
+            const noMatchingBooks = document.querySelector('.no-matching-books');
+            if (anyMatchingBooks) {
+                noMatchingBooks.style.display = 'none';
+            } else {
+                noMatchingBooks.style.display = 'block';
+            }
+        });
+
+
+    });
+</script>

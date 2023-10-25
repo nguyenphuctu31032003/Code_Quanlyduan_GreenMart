@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+        }
+        .options-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        .option-select {
+            border: 1px solid #ccc;
+            padding: 6px 12px;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .view-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 6px 12px;
+            cursor: pointer;
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="chart-container">
+    <div class="options-container">
+        <select class="option-select" id="view-option" onchange="showOption()">
+            <option value="month">Xem thống kê theo tháng</option>
+            <option value="day">Xem thống kê theo ngày</option>
+            <option value="year">Xem thống kê theo năm</option>
+        </select>
+        <!-- Month container -->
+        <div id="month-container" class="hidden">
+            <label style="margin-right: 1rem" for="month">Chọn tháng:</label>
+            <input type="month" id="month" name="month" value="<%= currentYearMonth %>">
+            <button class="view-button" onclick="fetchData('month')">Xem thống kê</button>
+        </div>
+        <!-- Day container -->
+        <div id="day-container" class="hidden">
+            <label style="margin-right: 1rem" for="day-input">Chọn ngày:</label>
+            <input type="date" id="day-input" name="day" value="<%= currentDate %>">
+            <button class="view-button" onclick="fetchData('day')">Xem thống kê</button>
+        </div>
+        <!-- Year container -->
+        <div id="year-container" class="hidden">
+            <label style="margin-right: 1rem" for="year">Chọn năm:</label>
+            <input type="number" id="year" name="year" min="2000" max="2100" step="1" value="2023">
+            <button class="view-button" onclick="fetchData('year')">Xem thống kê</button>
+        </div>
+    </div>
+    <div class="export-container">
+        <button class="view-button" onclick="exportToExcel()">Xuất Excel theo ngày</button>
+        <button class="view-button" onclick="exportMonthlyToExcel()">Xuất Excel theo tháng</button>
+    </div>
+    <canvas id="revenueChart"></canvas>
+
+</div>
+<script>
+    let revenueChart; // Biến để lưu trữ biểu đồ
+
+    async function fetchRevenueData(year,month) {
+        try {
+            const selectedMonth = document.getElementById('month').value;
+            const [year, month] = selectedMonth.split('-');
+
+            const response = await fetch(`/revenue/calculate-revenue-by-current-month?year=${year}&month=${month}`);
+            const data = await response.json();
+
+            const labels = Array.from({ length: 31 }, (_, i) => (i + 1).toString()); // Tạo mảng từ 1 đến 31
+            const totalRevenue = Array(31).fill(0); // Tạo mảng 31 phần tử với giá trị ban đầu là 0
+
+            data.forEach(item => {
+                const day = parseInt(item._id.slice(-2)) - 1; // Lấy ngày từ phần cuối của _id và trừ đi 1 để đúng index của mảng
+                totalRevenue[day] = item.totalRevenue;
+            });
+
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+
+            // Hủy biểu đồ cũ trước khi tạo biểu đồ mới
+            if (revenueChart) {
+                revenueChart.destroy();
+            }
+
+            revenueChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: totalRevenue,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching revenue data:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+
+        const monthInput = document.getElementById('month');
+        monthInput.value = `${currentYear}-${currentMonth}`;
+
+        fetchRevenueData(currentYear, currentMonth);
+        // Thiết lập giá trị mặc định cho picker ngày
+        const currentDate2 = new Date().toISOString().split('T')[0];
+        const dayInput = document.getElementById('day-input');
+        dayInput.value = currentDate2;
+
+        // Lấy thống kê theo tháng mặc định khi tải trang
+        fetchDailyRevenue();
+    });
+    async function fetchDailyRevenue() {
+        try {
+            const selectedDay = document.getElementById('day-input').value;
+            console.log(selectedDay+":selectday")
+            // Gọi API để lấy dữ liệu thống kê theo ngày
+            const response = await fetch(`/revenue/calculate-revenue-by-current-day?date=${selectedDay}`);
+            const data = await response.json();
+
+            const labels = Array.from({ length: 24 }, (_, i) => i.toString()); // Tạo mảng từ 0 đến 23
+            const totalRevenue = Array(24).fill(0); // Tạo mảng 24 phần tử với giá trị ban đầu là 0
+
+            data.forEach(item => {
+                const hour = parseInt(item._id.slice(-2)); // Lấy giờ từ phần cuối của _id
+                totalRevenue[hour] = item.totalRevenue;
+            });
+
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+
+            // Hủy biểu đồ cũ trước khi tạo biểu đồ mới
+            if (revenueChart) {
+                revenueChart.destroy();
+            }
+
+            revenueChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: totalRevenue,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Giờ'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Doanh thu'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: (context) => `${context[0].label} giờ`, // Hiển thị giờ khi hover
+                                label: (context) => `Doanh thu: ${context.parsed.y}` // Hiển thị doanh thu khi hover
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching revenue data:', error);
+        }
+    }
+    async function fetchYearlyRevenue() {
+        try {
+            const selectedYear = document.getElementById('year').value;
+            const response = await fetch(`/revenue/calculate-revenue-by-current-year?year=${selectedYear}`);
+            const data = await response.json();
+
+            const labels = Array.from({ length: 12 }, (_, i) => (i + 1).toString()); // Tạo mảng từ 1 đến 12
+            const totalRevenue = Array(12).fill(0); // Tạo mảng 12 phần tử với giá trị ban đầu là 0
+
+            data.forEach(item => {
+                const month = parseInt(item._id) - 1; // Lấy tháng và trừ đi 1 để đúng index của mảng
+                totalRevenue[month] = item.totalRevenue;
+            });
+
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+
+            if (revenueChart) {
+                revenueChart.destroy();
+            }
+
+            revenueChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: totalRevenue,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching revenue data:', error);
+        }
+    }
+
+    function exportToExcel() {
+        const selectedDay = document.getElementById('day-input').value;
+        fetch(`/revenue/get-rentals-by-date?date=${selectedDay}`)
+                .then(response => response.blob()) // Chỉnh đổi từ json() thành blob()
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = `rentals_${selectedDay}.xlsx`;
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                })
+                .catch(error => {
+                    console.error('Error creating Excel download link:', error);
+                });
+    }
+    async function exportMonthlyToExcel() {
+        const selectedMonth = document.getElementById('month').value;
+        const [year, month] = selectedMonth.split('-');
+
+        const response = await fetch(`/revenue/get-rentals-by-month?year=${year}&month=${month}`);
+        const blob = await response.blob();
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `rentals_${year}_${month}.xlsx`;
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    function showOption() {
+        const selectedOption = document.getElementById('view-option').value;
+        const containers = document.getElementsByClassName('hidden');
+        for (const container of containers) {
+            container.style.display = 'none';
+        }
+        document.getElementById(`${selectedOption}-container`).style.display = 'block';
+    }
+    function fetchData(option) {
+        if (option === 'month') {
+            const selectedMonth = document.getElementById('month').value;
+            const [year, month] = selectedMonth.split('-');
+            fetchRevenueData(year, month);
+        } else if (option === 'day') {
+            const selectedDay = document.getElementById('day-input').value;
+            fetchDailyRevenue(selectedDay);
+        } else if (option === 'year') {
+            const selectedYear = document.getElementById('year').value;
+            fetchYearlyRevenue(selectedYear);
+        }
+    }
+
+</script>
+</body>
+</html>

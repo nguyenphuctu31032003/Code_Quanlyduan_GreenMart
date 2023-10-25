@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Librarian</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .form-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-container input[type="text"],
+        .form-container input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+        }
+
+        .form-container input[type="submit"] {
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .form-container input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .error-message {
+            color: red;
+            margin-bottom: 10px;
+        }
+
+        .image-preview {
+            margin-bottom: 15px;
+        }
+
+        .image-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <form id="update-form" action="/librarians/{{librarian._id}}?_method=PUT" method="POST" enctype="multipart/form-data">
+        <input type="hidden" value="{{librarian._id}}">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required value="{{librarian.name}}">
+
+        <label for="gender">Gender:</label>
+        <input type="text" id="gender" name="gender" required value="{{librarian.gender}}">
+
+        <label for="date_of_birth">Date of Birth:</label>
+        <input type="text" id="date_of_birth" name="date_of_birth" required value="{{librarian.date_of_birth}}">
+
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address" required value="{{librarian.address}}">
+
+        <label for="phone">Phone:</label>
+        <input type="text" id="phone" name="phone" required value="{{librarian.phone}}">
+
+        <label for="image">Image:</label>
+        <input type="file" id="image" name="image" required src="{{librarian.image}}">
+        <div class="image-preview" id="image-preview"></div>
+
+        <input style="border-radius: 4px;width: 100%" type="submit" value="Update">
+    </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const librarianForm = document.getElementById('update-form');
+    const phoneInput = document.getElementById('phone');
+    const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('image-preview');
+    const id = "{{librarian._id}}";
+    librarianForm.addEventListener('submit', function(event) {
+        event.preventDefault(); // Ngăn trình duyệt gửi yêu cầu form
+
+        if (!librarianForm.checkValidity()) {
+            event.stopPropagation();
+            librarianForm.classList.add('was-validated');
+            return;
+        }
+
+        // Lưu dữ liệu form bằng Ajax
+        const formData = new FormData(this);
+        fetch(`/librarians/${id}?_method=PUT`, {
+            method: 'POST',
+            body: formData,
+        })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data)
+                    if (data.success) {
+                        swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: 'Cập nhật thành công!',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            window.location.href = '/librarians';
+                        });
+                    } else {
+                        swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Số điện thoại này đã được dùng cho thủ thư khác!',
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.log(error);
+                    swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Có lỗi khi gửi yêu cầu. Vui lòng thử lại!',
+                    });
+                });
+    });
+
+
+    imageInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            imagePreview.innerHTML = '';
+            imagePreview.appendChild(img);
+        }
+
+        reader.readAsDataURL(file);
+    });
+
+
+    function isValidPhone(phone) {
+        const phonePattern = /^\d{10,}$/;
+        return phonePattern.test(phone);
+    }
+
+</script>
+
+
+</body>
+</html>
