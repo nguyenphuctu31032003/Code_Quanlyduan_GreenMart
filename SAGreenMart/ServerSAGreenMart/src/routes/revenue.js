@@ -1,0 +1,12 @@
+const express = require('express')
+const router = express.Router()
+const revenueController = require('../app/controllers/RevenueController')
+router.get('/calculate-revenue-by-current-year',revenueController.year)
+router.get('/calculate-revenue-by-current-month',revenueController.month)
+router.get('/calculate-revenue-by-current-day',revenueController.day)
+router.get('/get-rentals-by-month',revenueController.getRentalsByMonth)
+router.get('/get-rentals-by-date',revenueController.getRentalsByDate)
+router.get('/calculate-total-revenue',revenueController.total)
+router.get('/revenue',revenueController.revenue)
+router.get('/',revenueController.index)
+module.exports = router

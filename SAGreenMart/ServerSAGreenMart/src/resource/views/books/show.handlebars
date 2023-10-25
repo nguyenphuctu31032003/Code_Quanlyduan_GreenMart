@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Products</title>
+    <style>
+        .container {
+            width: 130%;
+            max-width: 1100px;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            padding: 20px;
+        }
+        .image-container {
+            width: 100%;
+            max-width: 200px;
+            height: 100%;
+            max-height: 140px;
+            object-fit: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10rem;
+            margin-left: 2rem;
+            margin-right: 2.5rem;
+        }
+        .image-upload {
+            margin-top: 10px;
+        }
+        .image-upload label.btn-primary {
+            cursor: pointer;
+        }
+        .book-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .form-container {
+            flex: 1;
+            max-width: 400px;
+            padding: 0 20px;
+        }
+        .form-group {
+            width: 350%;
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        form {
+            display: flex;
+            flex-direction: row;
+        }
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <form id="update-form" method="POST" action="/products/{{book._id}}?_method=PUT" onsubmit="return validateForm()" enctype="multipart/form-data">
+        <div style="display: flex;flex-direction: row">
+            <div class="image-container">
+                <img class="book-image" id="demo-image" src="{{book.image}}" alt="Products Image">
+                <div class="image-upload">
+                    <label for="upload-input" class="btn btn-primary">Update Image</label>
+                    <input type="file" name="image" id="upload-input" style="display:none" onchange="previewImage(event)">
+                </div>
+            </div>
+            <div class="form-container">
+                <div class="form-group">
+                    <label>Tên Sản Phẩm:</label>
+                    <input type="text" class="form-control" name="name" value="{{book.name}}">
+                </div>
+                <div class="form-group">
+                    <label>Thể Loại:</label>
+                    <input type="text" class="form-control" name="category" value="{{book.category}}">
+                </div>
+                <div class="form-group">
+                    <label>Nhà Sản Xuất:</label>
+                    <input type="text" class="form-control" name="publisher" value="{{book.publisher}}">
+                </div>
+                <div class="form-group">
+                    <label>Số Lượng:</label>
+                    <input type="number" class="form-control" name="quantity" value="{{book.quantity}}">
+                </div>
+                <div class="form-group">
+                    <label>Giá Bán:</label>
+                    <input type="number" class="form-control" name="price" value="{{book.price}}">
+                </div>
+                <div class="form-group">
+                    <label>Mô tả:</label>
+                    <textarea class="form-control" style="margin-bottom: 2rem" name="description">{{book.description}}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function previewImage(event) {
+        var reader = new FileReader();
+        reader.onload = function() {
+            var imgElement = document.getElementById("demo-image");
+            imgElement.src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+</script>
+
+
+<script>
+    function validateForm() {
+        // Kiểm tra các trường bắt buộc
+        var bookTitle = document.getElementById("name").value;
+        var categoryName = document.getElementById("category").value;
+        var publisher = document.getElementById("publisher").value;
+        var quantity = parseInt(document.getElementById("quantity").value);
+        var purchasePrice = parseInt(document.getElementById("price").value);
+        var description = document.getElementById("description").value;
+
+        if (bookTitle === "" || categoryName === "" || publisher === "" ||
+                quantity === "" || purchasePrice === "" || description === "") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Vui lòng điền đầy đủ thông tin vào các trường bắt buộc.',
+            });
+            return false;
+        }
+
+        // Kiểm tra giá trị số lượng, giá mua, giá thuê là số dương
+        if (Number(quantity) <= 0 || Number(purchasePrice) <= 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Vui lòng nhập giá trị số lượng, giá mua, giá thuê là số dương.',
+            });
+            return false;
+        }
+
+        // Kiểm tra giá thuê và giá mua lớn hơn 1000
+        if (purchasePrice < 1000) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Giá thuê và giá mua phải lớn hơn hoặc bằng 1000.',
+            });
+            return false;
+        }
+
+        return true;
+    }
+</script>
+<script>
+    const librarianForm = document.getElementById('update-form');
+    const id = "{{book._id}}";
+    librarianForm.addEventListener('submit', function(event) {
+        event.preventDefault(); // Ngăn trình duyệt gửi yêu cầu form
+
+        if (!librarianForm.checkValidity()) {
+            event.stopPropagation();
+            librarianForm.classList.add('was-validated');
+            return;
+        }
+
+        // Lưu dữ liệu form bằng Ajax
+        const formData = new FormData(this);
+        fetch(`/products/{{book._id}}?_method=PUT`, {
+            method: 'POST',
+            body: formData,
+        })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data)
+                    if (data.success) {
+                        swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: 'Cập nhật thành công!',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            window.location.href = '/home';
+                        });
+                    } else {
+                        swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Có lỗi xảy ra !',
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.log(error);
+                    swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Có lỗi khi gửi yêu cầu. Vui lòng thử lại!',
+                    });
+                });
+    });
+
+
+    imageInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            imagePreview.innerHTML = '';
+            imagePreview.appendChild(img);
+        }
+
+        reader.readAsDataURL(file);
+    });
+
+
+</script>
+</body>
+</html>

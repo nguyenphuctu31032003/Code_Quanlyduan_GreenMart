@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tạo phiếu mượn</title>
+    <!-- Thêm CSS của SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+    <!-- Thêm CSS tùy chỉnh -->
+    <style>
+        /* Giao diện hiện đại cho trang */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #007BFF;
+        }
+
+        /* Giao diện hiện đại cho thanh tìm kiếm */
+        #searchContainer {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #bookTitleInput {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #007BFF;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #searchBookBtn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Giao diện hiện đại cho danh sách kết quả tìm kiếm */
+        #searchResultList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #searchResultList li {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            position: relative; /* Để các phần tử con có thể sử dụng thuộc tính position: absolute; */
+        }
+
+        #searchResultList li img {
+            width: 100px;
+            height: 150px;
+            margin-right: 10px;
+        }
+
+        #searchResultList li h2 {
+            margin: 0;
+            color: #007BFF;
+            font-size: 20px;
+        }
+
+        #searchResultList li p {
+            margin: 5px 0;
+        }
+
+        /* Nút tạo phiếu mượn ở góc trên bên phải */
+        .createRentalBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px 15px;
+            font-size: 14px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .createRentalBtn:hover {
+            background-color: #0056b3;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<h1>Tạo phiếu mượn</h1>
+<!-- Thanh tìm kiếm -->
+<div id="searchContainer">
+    <input type="text" id="bookTitleInput" placeholder="Nhập tên sách...">
+    <button id="searchBookBtn">Tìm kiếm</button>
+</div>
+<!-- Đoạn HTML để hiển thị danh sách kết quả tìm kiếm -->
+<ul id="searchResultList"></ul>
+<!-- Thêm thư viện jQuery -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- Thêm thư viện SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
+<!-- JavaScript để xử lý tạo phiếu mượn và tích hợp với API tìm kiếm sách -->
+<script>
+    $(document).ready(function() {
+        let selectedBookId = null; // Biến để lưu trữ ID sách được chọn
+        books()
+        function books(){
+            fetch(`/booksjson`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hiển thị danh sách kết quả tìm kiếm bên dưới trường nhập liệu
+                        const resultList = $('#searchResultList');
+                        resultList.empty(); // Xóa danh sách cũ trước khi hiển thị kết quả mới
+                        // Hiển thị thông tin của từng sách trong danh sách kết quả
+                        data.forEach(book => {
+                            // Tạo HTML cho mỗi sách trong danh sách kết quả
+                            const bookInfoHTML = `
+                                    <li>
+                                        <img src="${book.image}" alt="${book.name}" style="width: 200px; height: 150px;object-fit: cover;">
+                                        <div>
+                                            <h2>${book.name}</h2>
+                                            <p>Thể loại: ${book.category}</p>
+                                            <p>Mô tả: ${book.description}</p>
+                                        </div>
+                                        <!-- Thêm thẻ <a> để chuyển đến trang tạo phiếu mượn với thông tin sách -->
+                                        <a class="createRentalBtn" href="/rental/create-rental/${book.slug}" data-book-id="${book._id}">Tạo phiếu mượn</a>
+                                    </li>
+                                `;
+                            resultList.append(bookInfoHTML);
+                        })
+                    })
+        }
+        function searchBooks() {
+            const keyword = $('#bookTitleInput').val();
+            // Gửi yêu cầu tìm kiếm sách đến máy chủ và nhận kết quả tìm kiếm dưới dạng JSON
+            fetch(`/rental/search?keyword=${keyword}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hiển thị danh sách kết quả tìm kiếm bên dưới trường nhập liệu
+                        const resultList = $('#searchResultList');
+                        resultList.empty(); // Xóa danh sách cũ trước khi hiển thị kết quả mới
+                        if (data.length === 0) {
+                            // Nếu không tìm thấy sách, hiển thị thông báo bằng SweetAlert2
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Không tìm thấy sách',
+                                text: 'Xin lỗi, không có sách nào phù hợp với từ khóa tìm kiếm.',
+                            });
+                        } else {
+                            // Hiển thị thông tin của từng sách trong danh sách kết quả
+                            data.forEach(book => {
+                                // Tạo HTML cho mỗi sách trong danh sách kết quả
+                                const bookInfoHTML = `
+                                    <li>
+                                        <img src="${book.image}" alt="${book.book_title}" style="width: 110px; height: 170px;object-fit: cover;">
+                                        <div>
+                                            <h2>${book.book_title}</h2>
+                                            <p>Tác giả: ${book.author_name}</p>
+                                            <p>Nhà xuất bản: ${book.publisher}</p>
+                                            <p>Năm xuất bản: ${book.publication_year}</p>
+                                            <p>Thể loại: ${book.category_name}</p>
+                                            <p>Mô tả: ${book.description}</p>
+                                        </div>
+                                        <!-- Thêm thẻ <a> để chuyển đến trang tạo phiếu mượn với thông tin sách -->
+                                        <a class="createRentalBtn" href="/rental/create-rental/${book.slug}" data-book-id="${book._id}">Tạo phiếu mượn</a>
+                                    </li>
+                                `;
+                                resultList.append(bookInfoHTML);
+                            });
+                        }
+                    })
+                    .catch(error => console.error("Lỗi khi gửi yêu cầu tìm kiếm sách:", error));
+
+        }
+
+        // Gán sự kiện click cho nút tìm kiếm
+        $('#searchBookBtn').on('click', function() {
+            searchBooks();
+        });
+
+        function createRental() {
+            const selectedBook = $('#bookTitleInput').val();
+            const userName = $('#userNameInput').val();
+            const phoneNumber = $('#phoneNumberInput').val();
+            const address = $('#addressInput').val();
+            const rentalData = {
+                user_id: userName,
+                phone: phoneNumber,
+                address: address,
+                book_title: selectedBook,
+                book_id: selectedBookId
+            };
+
+            fetch('rental/create-rental', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(rentalData)
+            })
+                    .then(response => response.json())
+                    .then(data => console.log('Phiếu mượn đã được tạo:', data))
+                    .catch(error => console.error('Lỗi khi tạo phiếu mượn:', error));
+        }
+
+        // Gán sự kiện click cho nút tạo phiếu mượn
+        $('.createRentalBtn').on('click', function(event) {
+            // Ngăn chặn hành vi mặc định của thẻ <a> để tránh chuyển hướng đến trang khác
+            event.preventDefault();
+            // Lưu trữ ID sách được chọn vào biến selectedBookId
+            selectedBookId = $(this).data('book-id');
+            // Gọi hàm tạo phiếu mượn khi người dùng click vào nút
+            createRental();
+        });
+    });
+</script>
+</body>
+</html>

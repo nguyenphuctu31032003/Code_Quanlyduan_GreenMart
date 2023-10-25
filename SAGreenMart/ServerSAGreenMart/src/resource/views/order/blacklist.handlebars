@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Overdue Rentals</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        table {
+            width: 120%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #333;
+            color: #fff;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+<table>
+    <tr>
+        <th>STT</th>
+        <th>Sách</th>
+        <th>Tên</th>
+        <th style="width: 200px">Số điện thoại</th>
+        <th>Địa chỉ</th>
+        <th>CCCD/MSSV</th>
+        <th style="width: 100px">Quá Hạn</th>
+    </tr>
+    {{#each overdueRentalsFiltered}}
+        <tr>
+            <td>{{@index}}</td>
+            <td>{{book_title}}</td>
+            <td style="width: 200px">{{name}}</td>
+            <td>{{phone}}</td>
+            <td>{{address}}</td>
+            <td>{{identifier}}</td>
+            <td>{{calculateDaysOverdue createdAt rental_days}}</td>
+        </tr>
+    {{/each}}
+</table>
+</body>
+</html>

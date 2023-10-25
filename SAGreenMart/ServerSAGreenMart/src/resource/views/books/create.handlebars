@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Post Products</title>
+
+    <style>
+        .swal2-popup {
+            max-width: 600px;
+            text-align: left;
+            margin: 0 auto;
+        }
+
+        .swal2-file {
+            display: block;
+            margin-top: 10px;
+            width: 100%;
+        }
+    </style>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- SweetAlert CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+</head>
+
+<body>
+<div class="container mt-4">
+    <h3><strong>Post Products</strong></h3>
+    <form id="create-form" method="POST" action="/books/store" enctype="multipart/form-data" onsubmit="return validateForm()">
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="name">Tên Sản Phẩm</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+                <div class="invalid-feedback">Vui lòng nhập tên sản phẩm.</div>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="publisher">Nhà sản xuất</label>
+                <input type="text" class="form-control" id="publisher" name="publisher" required>
+                <div class="invalid-feedback">Vui lòng nhập nhà sản xuất.</div>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="quantity">Số lượng</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" required>
+                <div class="invalid-feedback">Vui lòng nhập số lượng là số dương.</div>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="price">Giá mua</label>
+                <input type="number" class="form-control" id="price" name="price" required>
+                <div class="invalid-feedback">Vui lòng nhập giá mua là số dương.</div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="image">Hình ảnh</label>
+            <input type="file" class="form-control" id="image" name="image" required>
+            <div class="invalid-feedback">Vui lòng chọn hình ảnh.</div>
+        </div>
+        <div class="form-group">
+            <label for="description">Mô tả</label>
+            <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+            <div class="invalid-feedback">Vui lòng nhập mô tả.</div>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Thể loại</label>
+            <select class="form-control" id="category" name="category" required>
+                <!-- Các tùy chọn danh mục sẽ được thêm vào đây bằng JavaScript -->
+            </select>
+            <div class="invalid-feedback">Vui lòng chọn hoặc thêm mới danh mục.</div>
+        </div>
+
+
+        <button type="submit" class="btn btn-primary">Push</button>
+    </form>
+</div>
+
+<!-- Bootstrap JS và thư viện jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!-- SweetAlert JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
+
+<script>
+    function validateForm() {
+        // Kiểm tra các trường bắt buộc
+        var bookTitle = document.getElementById("name").value;
+        var categoryName = document.getElementById("category").value;
+        var publisher = document.getElementById("publisher").value;
+        var quantity = document.getElementById("quantity").value;
+        var purchasePrice = document.getElementById("price").value;
+        var description = document.getElementById("description").value;
+
+        if (bookTitle === "" || categoryName === "" || publisher === "" ||
+                quantity === "" || purchasePrice === "" || description === "") {
+            alert("Vui lòng điền đầy đủ thông tin vào các trường bắt buộc.");
+            return false;
+        }
+        // Kiểm tra giá trị số lượng, giá mua, giá thuê là số dương
+        if (quantity <= 0 || purchasePrice <= 0) {
+            alert("Vui lòng nhập giá trị số lượng, giá mua, giá thuê là số dương.");
+            return false;
+        }
+
+        return true;
+    }
+    // Lấy danh sách danh mục từ bảng categories
+    async function fetchCategoriesFromAPI() {
+        try {
+            const response = await fetch(`categories/categoriesjson`);
+            const data = await response.json();
+            data.forEach(category => {
+                console.log(category.category);
+            });            return Array.isArray(data) ? data : []; // Trả về mảng danh mục hoặc mảng trống nếu không có dữ liệu
+        } catch (error) {
+            console.error('Error:', error);
+            return []; // Xử lý lỗi nếu không gọi được API
+        }
+    }
+
+    // Hiển thị danh sách danh mục trong spinner
+    async function populateCategorySpinner() {
+        const categories = await fetchCategoriesFromAPI();
+        const categorySpinner = document.getElementById('category');
+
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.category;
+            option.textContent = category.category;
+            categorySpinner.appendChild(option);
+        });
+
+        // Thêm tùy chọn thêm mới
+        const addNewOption = document.createElement('option');
+        addNewOption.value = '__add_new__';
+        addNewOption.textContent = 'Thêm mới danh mục';
+        categorySpinner.appendChild(addNewOption);
+    }
+
+    document.getElementById('category').addEventListener('change', function () {
+        const selectedValue = this.value;
+        if (selectedValue === '__add_new__') {
+
+            Swal.fire({
+                title: 'Thêm mới danh mục',
+                html: '<input type="text" id="new_category_name" class="swal2-input" name="category" placeholder="Tên danh mục">' +
+                        '<input type="file" id="category_image" class="swal2-file" name="image">',
+                showCancelButton: true,
+                confirmButtonText: 'Lưu',
+                cancelButtonText: 'Hủy',
+                preConfirm: async () => {
+                    const newCategoryName = Swal.getPopup().querySelector('#new_category_name').value;
+                    const categoryImage = Swal.getPopup().querySelector('#category_image').files[0];
+                    const categories = await fetchCategoriesFromAPI();
+                    const categoryExists = categories.some(category => category.category === newCategoryName);
+                    if (categoryExists) {
+                        Swal.showValidationMessage('Thể loại đã tồn tại.');
+                    } else {
+                        const formData = new FormData();
+                        formData.append('category', newCategoryName);
+                        formData.append('image', categoryImage);
+                        console.log('ddddddd')
+                        const response = await fetch(`categories/addnew`, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.status === 200) {
+                            console.log('fghj')
+                            Swal.close();
+                            await populateCategorySpinner();
+                            const categorySpinner = document.getElementById('category');
+                            const newOption = document.createElement('option');
+                            newOption.value = newCategoryName;
+                            newOption.textContent = newCategoryName;
+                            categorySpinner.appendChild(newOption);
+                            newOption.selected = true;
+                        } else {
+                            Swal.showValidationMessage('Lỗi khi thêm thể loại.' + JSON.stringify(response));
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    // Gọi hàm để điền danh sách danh mục vào spinner khi trang tải
+    document.addEventListener('DOMContentLoaded', function () {
+        populateCategorySpinner();
+    });
+    const bookForm = document.getElementById('create-form');
+
+    bookForm.addEventListener('submit', async function (event) {
+        event.preventDefault(); // Ngăn trình duyệt gửi yêu cầu form
+
+        if (!bookForm.checkValidity()) {
+            event.stopPropagation();
+            bookForm.classList.add('was-validated');
+            return;
+        }
+
+        // Lưu dữ liệu form bằng Ajax
+        const formData = new FormData(this);
+        const response = await fetch('/products/store', {
+            method: 'POST',
+            body: formData,
+        })
+        if (response.status === 200) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công',
+                text: 'Thêm sản phẩm thành công!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+            bookForm.reset();
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Sản phẩm đã tồn tại, vui lòng thử lại',
+            });
+        }
+    });
+
+</script>
+</body>
+</html>

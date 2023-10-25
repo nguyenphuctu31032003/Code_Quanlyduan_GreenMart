@@ -1,0 +1,15 @@
+const express = require('express')
+const router = express.Router()
+const rentalController = require('../app/controllers/RentalController')
+router.get('/rentaljson',rentalController.rentaljson)
+router.get('/create-rental/:slug',rentalController.createRental)
+router.post('/create-order/postOrder',rentalController.postOrder)
+router.get('/create',rentalController.create)
+router.get('/search',rentalController.search)
+router.put('/:id/confirm-return',rentalController.returnRental)
+router.put('/:id',rentalController.showoneid)
+router.put('/:id/delete', rentalController.delete);
+router.get('/blacklist',rentalController.blacklist)
+router.get('/myorder/:userId',rentalController.myorder)
+router.get('/',rentalController.index)
+module.exports = router
